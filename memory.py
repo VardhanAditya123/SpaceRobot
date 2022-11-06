@@ -1,7 +1,7 @@
 import numpy as np
 import core
 import torch
-
+np.random.seed(0)
 class ReplayBuffer:
     """
     A simple FIFO experience replay buffer for DDPG agents.

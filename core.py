@@ -3,7 +3,7 @@ import scipy.signal
 
 import torch
 import torch.nn as nn
-
+torch.manual_seed(0)
 
 def combined_shape(length, shape=None):
     if shape is None:
