@@ -35,7 +35,7 @@ def get_action(o, noise_scale):
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
     # print(a)
-    a += noise_scale * np.random.randn(act_dim)
+    # a += noise_scale * np.random.randn(act_dim)
     # a = (1-noise_scale)*a  + noise_scale * np.random.randn(act_dim)
     return np.clip(a, -act_limit, act_limit)
 
@@ -72,7 +72,7 @@ def main():
     
     score_history = []
     n_played_games = 0
-    start_episodes = 10
+    start_episodes = 5
     
     # Experience buffer
     replay_size=int(1e6)
@@ -83,12 +83,12 @@ def main():
     goals = []
     observation,ep_ret,ep_len = env.reset(),0,0
     
-    for episode in range(150):
+    for episode in range(250):
         print(episode)
         if(episode == start_episodes):
             observation,ep_ret,ep_len = env.reset(),0,0
         goals = []
-        
+        replay_buffer_2 = ReplayBuffer(obs_dim=obs_dim, act_dim=act_dim, size=replay_size)
         for steps in range (1,550):        
             state = observation
             mstate = np.append(state['observation'],state['desired_goal'])
@@ -109,7 +109,7 @@ def main():
         
             ep_ret += reward
             ep_len += 1
-            
+             
             replay_buffer.store(mstate,action,reward,msprime,done)
             
             for goal in goals:
@@ -117,8 +117,10 @@ def main():
                 nsprime =  np.append(sprime['observation'],goal)
                 reward = compute_reward(state['achieved_goal'], goal , info['act'] ,info['old_act'],info) 
                 replay_buffer.store(nstate,action,reward,nsprime,0)
-           
-            if (done or steps >= 999):
+                replay_buffer_2.store(nstate,action,reward,nsprime,0)
+
+            
+            if (done or steps >= 999 or info['is_success'] == 1.0 ):
                 n_played_games += 1
                 score_history.append(ep_ret)
                 avg_score = np.mean(score_history[-100:])
@@ -126,15 +128,18 @@ def main():
                 observation,ep_ret,ep_len= env.reset(), 0, 0
                 break
             
-            if(steps  % 1 == 0 and episode >= start_episodes):
-               update(replay_buffer)
-            
-    while(1):
-        test_agent()
+            if(episode >= start_episodes):
+                batch_size = 500
+                update(replay_buffer, batch_size//2)
+                update(replay_buffer_2,batch_size//2)
+               
+    torch.save(anetwork, 'anetwork.pth') 
+    print("SAVED")      
+    # while(1):
+    #     test_agent()
             
 
-def update(replay_buffer):
-    batch_size = 500
+def update(replay_buffer, batch_size):
     data = replay_buffer.sample_batch(batch_size)
     qoptimizer.zero_grad()
     loss = compute_loss_q(data)
@@ -169,18 +174,20 @@ def update(replay_buffer):
 def test_agent():
         num_test_episodes=10
         avg_score_test = []
-        max_ep_len = 100000
+        max_ep_len = 550
         for j in range(num_test_episodes):
             o, d, ep_ret, ep_len = env.reset(), False, 0, 0
             g = o['desired_goal']
             o = o['observation']
-            while not (d or (ep_len == max_ep_len)):
+            while not ( d or (ep_len == max_ep_len)):
                 # Take deterministic actions at test time (noise_2scale=0)
                 env.render()
                 newo = np.append(o,g)
                 action = get_action(newo, 0)
                 o, r, d, info = env.step(action)
                 print(r,info,action)
+                if(info['is_success']):
+                    break
                 o = o['observation']
                 ep_ret += r
                 ep_len += 1
