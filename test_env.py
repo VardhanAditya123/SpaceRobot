@@ -3,6 +3,7 @@ import gym
 from pip import main
 import numpy as np
 import core
+import core_normal
 import torch
 from torch.optim import Adam
 import random
@@ -17,7 +18,8 @@ torch.manual_seed(0)
 np.random.seed(0)
 env = gym.make("SpaceRobotState-v0",reward_type="distance")
 
-actor_critic=core.MLPActorCritic
+# actor_critic=core.MLPActorCritic
+actor_critic=core_normal.MLPActorCritic
 ac_kwargs=dict()
 ac = actor_critic(env.observation_space['observation'], env.action_space, **ac_kwargs)
 alpha = 0.9
@@ -149,7 +151,7 @@ def main():
             
 def visualize(episode_list,reward_list):
     # create a new plot with a title and axis labels
-    p = figure(title="Transfer Learning Space Robot", x_axis_label="episode", y_axis_label="reward")
+    p = figure(title="Non-Transfer Learning Space Robot", x_axis_label="episode", y_axis_label="reward")
 
     # add a line renderer with legend and line thickness
     p.line(episode_list, reward_list, legend_label="Temp.", line_width=2)
