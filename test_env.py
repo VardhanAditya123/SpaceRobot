@@ -35,7 +35,7 @@ def get_action(o, noise_scale):
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
     # print(a)
-    # a += noise_scale * np.random.randn(act_dim)
+    # a += noise_scale * np.random.randn(act_dim) 
     # a = (1-noise_scale)*a  + noise_scale * np.random.randn(act_dim)
     return np.clip(a, -act_limit, act_limit)
 
@@ -120,6 +120,11 @@ def main():
                 replay_buffer_2.store(nstate,action,reward,nsprime,0)
 
             
+            if(episode >= start_episodes):
+                batch_size = 500
+                update(replay_buffer, batch_size//2)
+                update(replay_buffer_2,batch_size//2)
+            
             if (done or steps >= 999 or info['is_success'] == 1.0 ):
                 n_played_games += 1
                 score_history.append(ep_ret)
@@ -127,11 +132,6 @@ def main():
                 print( 'score %.1f' %ep_ret, 'avg_score %.1f' %avg_score,'num_games', n_played_games, action )
                 observation,ep_ret,ep_len= env.reset(), 0, 0
                 break
-            
-            if(episode >= start_episodes):
-                batch_size = 500
-                update(replay_buffer, batch_size//2)
-                update(replay_buffer_2,batch_size//2)
                
     torch.save(anetwork, 'anetwork.pth') 
     print("SAVED")      
