@@ -10,6 +10,9 @@ import random
 import SpaceRobotEnv
 
 from memory import ReplayBuffer
+
+from bokeh.plotting import figure, show
+
 torch.manual_seed(0)
 np.random.seed(0)
 env = gym.make("SpaceRobotState-v0",reward_type="distance")
@@ -74,6 +77,9 @@ def main():
     n_played_games = 0
     start_episodes = 5
     
+    episode_list = []
+    reward_list = []
+    
     # Experience buffer
     replay_size=int(1e6)
     obs_dim = env.observation_space['observation'].shape[0] + 3
@@ -83,7 +89,7 @@ def main():
     goals = []
     observation,ep_ret,ep_len = env.reset(),0,0
     
-    for episode in range(250):
+    for episode in range(400):
         print(episode)
         if(episode == start_episodes):
             observation,ep_ret,ep_len = env.reset(),0,0
@@ -128,16 +134,29 @@ def main():
             if (done or steps >= 999 or info['is_success'] == 1.0 ):
                 n_played_games += 1
                 score_history.append(ep_ret)
+                episode_list.append(episode)
                 avg_score = np.mean(score_history[-100:])
                 print( 'score %.1f' %ep_ret, 'avg_score %.1f' %avg_score,'num_games', n_played_games, action )
                 observation,ep_ret,ep_len= env.reset(), 0, 0
                 break
                
     torch.save(anetwork, 'anetwork.pth') 
-    print("SAVED")      
+    print("SAVED")
+    visualize(episode_list,score_history)
+          
     # while(1):
     #     test_agent()
             
+def visualize(episode_list,reward_list):
+    # create a new plot with a title and axis labels
+    p = figure(title="Transfer Learning Space Robot", x_axis_label="episode", y_axis_label="reward")
+
+    # add a line renderer with legend and line thickness
+    p.line(episode_list, reward_list, legend_label="Temp.", line_width=2)
+
+    # show the results
+    show(p)
+
 
 def update(replay_buffer, batch_size):
     data = replay_buffer.sample_batch(batch_size)
