@@ -36,7 +36,7 @@ def get_action(o, noise_scale):
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
     # print(a)
     # a += noise_scale * np.random.randn(act_dim) 
-    # a = (1-noise_scale)*a  + noise_scale * np.random.randn(act_dim)
+    a = (1-noise_scale)*a  + noise_scale * np.random.randn(act_dim)
     return np.clip(a, -act_limit, act_limit)
 
 def compute_loss_q(data):
