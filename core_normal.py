@@ -53,7 +53,7 @@ class MLPQFunction(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation):
         super().__init__()
         input_size = [obs_dim + act_dim] +  [hidden_sizes[0]] 
-        core_size =  [hidden_sizes[0]]+ [hidden_sizes[0]] + [1]
+        core_size =   [hidden_sizes[0]] + [hidden_sizes[0]]+ [hidden_sizes[0]] + [1]
         
         self.input = mlp(input_size,activation,activation)
         self.core =  mlp(core_size,activation)

@@ -37,7 +37,7 @@ aoptimizer = Adam(anetwork.parameters(), lr=pi_lr)
 qoptimizer = Adam(qnetwork.parameters(), lr=q_lr)
 
 def get_action(o, noise_scale):
-    noise_scale = 0.3
+    noise_scale = 0.2
     act_limit = env.action_space.high[0]
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
@@ -129,11 +129,13 @@ def main():
                 replay_buffer_2.store(nstate,action,reward,nsprime,0)
 
             
+            
             if(episode >= start_episodes):
                 batch_size = 500
                 update(replay_buffer, batch_size//2)
                 update(replay_buffer_2,batch_size//2)
-            
+                
+                
             if (done or steps >= 999 or info['is_success'] == 1.0 ):
                 n_played_games += 1
                 score_history.append(ep_ret)
@@ -142,6 +144,7 @@ def main():
                 print( 'score %.1f' %ep_ret, 'avg_score %.1f' %avg_score,'num_games', n_played_games, action )
                 observation,ep_ret,ep_len= env.reset(), 0, 0
                 break
+            
                
     torch.save(anetwork, 'anetwork.pth') 
     print("SAVED")
