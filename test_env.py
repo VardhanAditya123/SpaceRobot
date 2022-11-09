@@ -37,12 +37,11 @@ aoptimizer = Adam(anetwork.parameters(), lr=pi_lr)
 qoptimizer = Adam(qnetwork.parameters(), lr=q_lr)
 
 def get_action(o, noise_scale):
+    noise_scale = 0.3
     act_limit = env.action_space.high[0]
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
-    # print(a)
     # a += noise_scale * np.random.randn(act_dim)
-    noise_scale = 0.2
     a = (1-noise_scale)*a  + noise_scale * np.random.randn(act_dim)
     return np.clip(a, -act_limit, act_limit)
 
@@ -157,7 +156,7 @@ def visualize(episode_list,reward_list):
         ('reward', "@y"),
         ('episode', "@x"),
     ]
-    p = figure(title="Non-Transfer Learning Space Robot",
+    p = figure(title="Transfer Learning Space Robot",
                tools=[HoverTool()],
                tooltips=TOOLTIPS,
                x_axis_label="episode", 
