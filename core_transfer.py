@@ -27,7 +27,7 @@ class MLPActor(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, act_limit):
         super().__init__()
         
-        core_size = list(hidden_sizes) + list(hidden_sizes)
+        core_size = list(hidden_sizes) + [hidden_sizes[0]]
         input_size = [obs_dim]+[hidden_sizes[0]]
         output_size = [hidden_sizes[0]]+[act_dim]
        
