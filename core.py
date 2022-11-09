@@ -31,7 +31,7 @@ class MLPActor(nn.Module):
         input_size = [obs_dim]+[hidden_sizes[0]]
         output_size = [hidden_sizes[0]]+[act_dim]
        
-        self.act_limit = act_limit
+        self.act_limit = 1
         
         self.input = mlp(input_size,activation,activation)
         self.core =  torch.load('fetch_core_a.pth')

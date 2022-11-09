@@ -13,6 +13,7 @@ import SpaceRobotEnv
 from memory import ReplayBuffer
 
 from bokeh.plotting import figure, show
+from bokeh.models import HoverTool
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -40,7 +41,8 @@ def get_action(o, noise_scale):
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
     # print(a)
-    # a += noise_scale * np.random.randn(act_dim) 
+    # a += noise_scale * np.random.randn(act_dim)
+    noise_scale = 0.2
     a = (1-noise_scale)*a  + noise_scale * np.random.randn(act_dim)
     return np.clip(a, -act_limit, act_limit)
 
@@ -151,7 +153,16 @@ def main():
             
 def visualize(episode_list,reward_list):
     # create a new plot with a title and axis labels
-    p = figure(title="Non-Transfer Learning Space Robot", x_axis_label="episode", y_axis_label="reward")
+    TOOLTIPS = [
+        ('reward', "@y"),
+        ('episode', "@x"),
+    ]
+    p = figure(title="Non-Transfer Learning Space Robot",
+               tools=[HoverTool()],
+               tooltips=TOOLTIPS,
+               x_axis_label="episode", 
+               y_axis_label="reward" 
+               )
 
     # add a line renderer with legend and line thickness
     p.line(episode_list, reward_list, legend_label="Temp.", line_width=2)
