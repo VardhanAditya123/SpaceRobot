@@ -1,12 +1,7 @@
-import copy
-import gym
-from pip import main
-import numpy as np
-import core
-import torch
-from torch.optim import Adam
-import random
 
+import gym
+import numpy as np
+import torch
 from memory import ReplayBuffer
 import SpaceRobotEnv
 
