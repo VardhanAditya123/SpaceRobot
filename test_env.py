@@ -19,8 +19,8 @@ torch.manual_seed(0)
 np.random.seed(0)
 env = gym.make("SpaceRobotState-v0",reward_type="distance")
 
-# actor_critic=core_transfer.MLPActorCritic
-actor_critic=core_normal.MLPActorCritic
+actor_critic=core_transfer.MLPActorCritic
+# actor_critic=core_normal.MLPActorCritic
 ac_kwargs=dict()
 ac = actor_critic(env.observation_space['observation'], env.action_space, **ac_kwargs)
 alpha = 0.9

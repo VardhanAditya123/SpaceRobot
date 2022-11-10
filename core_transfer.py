@@ -36,6 +36,7 @@ class MLPActor(nn.Module):
         self.input = mlp(input_size,activation,activation)
         self.core =  torch.load('fetch_core_a.pth')
         self.output = mlp(output_size,activation,nn.Tanh)
+        print("Actor")
         print(self.input)
         print(self.core)
         print(self.output)
@@ -52,25 +53,30 @@ class MLPQFunction(nn.Module):
     
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation):
         super().__init__()
-        input_size = [obs_dim + act_dim] +  [hidden_sizes[0]]
-        core_size = [hidden_sizes[0]] + [hidden_sizes[0]] + [1]
+        input_size = [obs_dim + act_dim] +  [hidden_sizes[0]] 
+        core_size =   [hidden_sizes[0]] + [hidden_sizes[0]] + [hidden_sizes[0]]
+        output_size = [hidden_sizes[0]] + [1]
         
+        print("Critic/Q-function")
         self.input = mlp(input_size,activation,activation)
         self.core =  torch.load('fetch_core_q.pth')
+        self.output = mlp(output_size,activation)
         print(self.input)
         print(self.core)
+        print(self.output)
         
         
 
     def forward(self, obs, act):
         input_value = self.input(torch.cat([obs, act], dim=-1))
         core_value = self.core(input_value)
-        return torch.squeeze(core_value,-1)
+        output_value = self.output(core_value)
+        return torch.squeeze(output_value,-1)
 
 
 class MLPActorCritic(nn.Module):
 
-    def __init__(self, observation_space, action_space, hidden_sizes=(512,512),
+    def __init__(self, observation_space, action_space, hidden_sizes=(384,384),
                  activation=nn.ReLU):
         super().__init__()
 
@@ -85,6 +91,7 @@ class MLPActorCritic(nn.Module):
     def act(self, obs):
         with torch.no_grad():
             return self.pi(obs).numpy()
+
 
 # self.core =  torch.load('fetch_core_a.pth')
 # self.core =  torch.load('fetch_core_q.pth')
