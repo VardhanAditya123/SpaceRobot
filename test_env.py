@@ -19,8 +19,8 @@ torch.manual_seed(0)
 np.random.seed(0)
 env = gym.make("SpaceRobotState-v0",reward_type="distance")
 
-actor_critic=core_transfer.MLPActorCritic
-# actor_critic=core_normal.MLPActorCritic
+# actor_critic=core_transfer.MLPActorCritic
+actor_critic=core_normal.MLPActorCritic
 ac_kwargs=dict()
 ac = actor_critic(env.observation_space['observation'], env.action_space, **ac_kwargs)
 alpha = 0.9
@@ -37,7 +37,7 @@ aoptimizer = Adam(anetwork.parameters(), lr=pi_lr)
 qoptimizer = Adam(qnetwork.parameters(), lr=q_lr)
 
 def get_action(o, noise_scale):
-    noise_scale = 0.25
+    noise_scale = 0.3
     act_limit = env.action_space.high[0]
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
@@ -48,13 +48,15 @@ def get_action(o, noise_scale):
 def compute_loss_q(data):
         gamma = 0.99
         o, a, r, o2, d = data['obs'], data['act'], data['rew'], data['obs2'], data['done']
+        # print(torch.var(a))
         q = qnetwork(o,a)
         # Bellman backup for Q function
  
         with torch.no_grad():
             q_pi_targ = qtarget(o2, atarget(o2))
             backup = r + gamma * (1 - d) * (q_pi_targ )
-
+       
+        
         # MSE loss against Bellman backup
         loss_q = ((q - backup)**2).mean()
         return loss_q
@@ -63,7 +65,8 @@ def compute_loss_q(data):
 def compute_loss_pi(data):
     o = data['obs']
     a = data['act']
-    q_pi = qnetwork(o, anetwork(o))
+    var_noise =0.5
+    q_pi = (1-var_noise) *(qnetwork(o, anetwork(o))) - (var_noise*torch.var(a,dim=1))
     return -q_pi.mean()
 
 def main():
