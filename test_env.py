@@ -65,7 +65,7 @@ def compute_loss_q(data):
 def compute_loss_pi(data):
     o = data['obs']
     a = data['act']
-    var_noise =0.5
+    var_noise =0.3
     q_pi = (1-var_noise) *(qnetwork(o, anetwork(o))) - (var_noise*torch.var(a,dim=1))
     return -q_pi.mean()
 
