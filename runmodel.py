@@ -16,7 +16,7 @@ def main():
     while(1):
         test_agent()
 def get_action(o, noise_scale):
-    noise_scale = 0.15
+    noise_scale = 0.3
     act_limit = env.action_space.high[0]
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
@@ -34,6 +34,7 @@ def test_agent():
         env.render()
         newo = np.append(o,g)
         action = get_action(newo, 0)
+        # action = env.action_space.sample()
         o, r, d, info = env.step(action)
         # print(r,info,action)
         if(info['is_success'] == 1):
