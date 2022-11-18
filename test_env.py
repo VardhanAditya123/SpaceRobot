@@ -7,6 +7,7 @@ import core_normal
 import torch
 from torch.optim import Adam
 import random
+import time 
 
 import SpaceRobotEnv
 
@@ -14,7 +15,9 @@ from memory import ReplayBuffer
 
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool
+from bokeh.plotting import ColumnDataSource, figure, show
 
+start_time = time.time()
 torch.manual_seed(0)
 np.random.seed(0)
 env = gym.make("SpaceRobotState-v0",reward_type="distance")
@@ -65,8 +68,8 @@ def compute_loss_q(data):
 def compute_loss_pi(data):
     o = data['obs']
     a = data['act']
-    var_noise = 0.4
-    q_pi = (1-var_noise) *(qnetwork(o, anetwork(o))) - (var_noise*torch.var(a))
+    var_noise = 0.2
+    q_pi = (1-var_noise) *(qnetwork(o, anetwork(o))) - (var_noise*torch.var(a,dim=1))
     # q_pi = (qnetwork(o, anetwork(o))) - (torch.var(a,dim=1))
     return -q_pi.mean()
 
@@ -81,6 +84,7 @@ def main():
     print("mmin_action", env.action_space.low)
     
     score_history = []
+    time_history =[]
     n_played_games = 0
     start_episodes = 5
     
@@ -96,7 +100,7 @@ def main():
     goals = []
     observation,ep_ret,ep_len = env.reset(),0,0
     
-    for episode in range(650):
+    for episode in range(450):
         print(episode)
         if(episode == start_episodes):
             observation,ep_ret,ep_len = env.reset(),0,0
@@ -138,12 +142,15 @@ def main():
                 batch_size = 500
                 update(replay_buffer, batch_size//2)
                 update(replay_buffer_2,batch_size//2)
+                update(replay_buffer, batch_size//2)
+                
                 
                 
             if (done or steps >= 999 or info['is_success'] == 1.0 ):
                 n_played_games += 1
                 score_history.append(ep_ret)
                 episode_list.append(episode)
+                time_history.append(time.time() - start_time)
                 avg_score = np.mean(score_history[-100:])
                 print( 'score %.1f' %ep_ret, 'avg_score %.1f' %avg_score,'num_games', n_played_games, action )
                 observation,ep_ret,ep_len= env.reset(), 0, 0
@@ -152,17 +159,26 @@ def main():
                
     torch.save(anetwork, 'anetwork.pth') 
     print("SAVED")
-    visualize(episode_list,score_history)
+    visualize(episode_list,score_history,time_history)
+    print("--- %s seconds ---" % (time.time() - start_time))
           
     # while(1):
     #     test_agent()
             
-def visualize(episode_list,reward_list):
+def visualize(episode_list,reward_list,time_history):
     # create a new plot with a title and axis labels
     TOOLTIPS = [
-        ('reward', "@y"),
         ('episode', "@x"),
+        ('reward', "@y"),
+        ('time_taken','@time')
     ]
+    
+    source = ColumnDataSource(data=dict(
+    x=episode_list,
+    y=reward_list,
+    time = time_history,
+    ))
+    
     p = figure(title="Transfer Learning Space Robot",
                tools=[HoverTool()],
                tooltips=TOOLTIPS,
@@ -171,7 +187,7 @@ def visualize(episode_list,reward_list):
                )
 
     # add a line renderer with legend and line thickness
-    p.line(episode_list, reward_list, legend_label="Temp.", line_width=2)
+    p.line(x='x', y='y', line_width=2,source=source)
 
     # show the results
     show(p)
