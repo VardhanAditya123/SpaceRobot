@@ -40,7 +40,7 @@ aoptimizer = Adam(anetwork.parameters(), lr=pi_lr)
 qoptimizer = Adam(qnetwork.parameters(), lr=q_lr)
 
 def get_action(o, noise_scale):
-    noise_scale = 0.3
+    noise_scale = 0.2
     act_limit = env.action_space.high[0]
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
@@ -68,7 +68,7 @@ def compute_loss_q(data):
 def compute_loss_pi(data):
     o = data['obs']
     a = data['act']
-    var_noise = 0.1
+    var_noise = 0.3
     q_pi = (qnetwork(o, anetwork(o))) + (var_noise*torch.var(a,dim=1))
     # q_pi = (qnetwork(o, anetwork(o))) - (torch.var(a,dim=1))
     return -q_pi.mean()
@@ -142,9 +142,9 @@ def main():
                 batch_size = 400
                 update(replay_buffer_2,batch_size//4)
                 update(replay_buffer, batch_size//4)
-                update(replay_buffer_2,batch_size//4)
                 update(replay_buffer, batch_size//4)
-                # update(replay_buffer_2,batch_size//4)
+                update(replay_buffer_2,batch_size//4)
+                update(replay_buffer,batch_size//4)
                 
                 
                 
