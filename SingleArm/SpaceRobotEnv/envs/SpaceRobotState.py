@@ -271,9 +271,9 @@ class SpacerobotEnv(RobotEnv):
         obs = np.concatenate(
             [
                 self.sim.data.qpos[7:13].copy(),
-                self.sim.data.qvel[6:12].copy(),
+                # self.sim.data.qvel[6:12].copy(),
                 grip_pos,
-                grip_velp,
+                # grip_velp,
                 # self.goal.copy(),
             ]
         )

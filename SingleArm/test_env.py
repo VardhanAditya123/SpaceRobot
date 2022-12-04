@@ -70,7 +70,7 @@ def compute_loss_pi(data):
     a = data['act']
     var_noise = 0.3
     # print(qnetwork(o, anetwork(o)),torch.var(a,dim=1))
-    q_pi = (1-var_noise)*(qnetwork(o, anetwork(o))) + (var_noise*torch.var(a,dim=1))
+    q_pi = (qnetwork(o, anetwork(o))) - (var_noise*torch.var(a,dim=1))
     # q_pi = (qnetwork(o, anetwork(o))) - (torch.var(a,dim=1))
     return -q_pi.mean()
 
@@ -141,10 +141,10 @@ def main():
             
             if(episode >= start_episodes):
                 batch_size = 400
-                update(replay_buffer_2,batch_size//4)
-                update(replay_buffer, batch_size//4)
-                update(replay_buffer, batch_size//4)
-                update(replay_buffer_2,batch_size//4)
+                # update(replay_buffer_2,batch_size//4)
+                update(replay_buffer, batch_size)
+                update(replay_buffer, batch_size)
+                # update(replay_buffer_2,batch_size//4)
                 
                 
                 
