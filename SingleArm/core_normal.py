@@ -74,7 +74,7 @@ class MLPQFunction(nn.Module):
 
 class MLPActorCritic(nn.Module):
 
-    def __init__(self, observation_space, action_space, hidden_sizes=(416,416),
+    def __init__(self, observation_space, action_space, hidden_sizes=(544,544),
                  activation=nn.ReLU):
         super().__init__()
 
