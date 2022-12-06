@@ -27,8 +27,8 @@ class MLPActor(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, act_limit):
         super().__init__()
         
-        core_size =  [hidden_sizes[0]] + [hidden_sizes[0]]  + [hidden_sizes[0]]
         input_size = [obs_dim]+[hidden_sizes[0]]
+        core_size =   list(hidden_sizes)  + list(hidden_sizes)
         output_size = [hidden_sizes[0]]+[act_dim]
        
         self.act_limit = act_limit
@@ -53,7 +53,7 @@ class MLPQFunction(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation):
         super().__init__()
         input_size = [obs_dim + act_dim] +  [hidden_sizes[0]] 
-        core_size =   [hidden_sizes[0]] + [hidden_sizes[0]] + [hidden_sizes[0]]
+        core_size =   list(hidden_sizes)  + list(hidden_sizes)
         output_size = [hidden_sizes[0]] + [1]
         
         self.input = mlp(input_size,activation,activation)
@@ -74,7 +74,7 @@ class MLPQFunction(nn.Module):
 
 class MLPActorCritic(nn.Module):
 
-    def __init__(self, observation_space, action_space, hidden_sizes=(868,868),
+    def __init__(self, observation_space, action_space, hidden_sizes=(200,200),
                  activation=nn.ReLU):
         super().__init__()
 
