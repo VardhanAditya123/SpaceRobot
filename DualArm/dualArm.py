@@ -43,8 +43,7 @@ def get_action(o, noise_scale):
     act_limit = env.action_space.high[0]
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
-    # a += noise_scale * np.random.randn(act_dim)
-    a = (1-noise_scale)*a  + (noise_scale * np.random.randn(act_dim))
+    a = (1-noise_scale)*a  + (noise_scale * np.random.rand(act_dim))
     return np.clip(a, -act_limit, act_limit)
 
 def compute_loss_q(data):
@@ -98,13 +97,13 @@ def main():
 
     goals = []
     observation,ep_ret,ep_len = env.reset(),0,0
-    
+    replay_buffer_2 = ReplayBuffer(obs_dim=obs_dim, act_dim=act_dim, size=replay_size)
     for episode in range(450):
         print(episode)
         if(episode == start_episodes):
             observation,ep_ret,ep_len = env.reset(),0,0
         goals = []
-        replay_buffer_2 = ReplayBuffer(obs_dim=obs_dim, act_dim=act_dim, size=replay_size)
+        # replay_buffer_2 = ReplayBuffer(obs_dim=obs_dim, act_dim=act_dim, size=replay_size)
         for steps in range (1,550):   
                  
             state = observation
@@ -143,13 +142,15 @@ def main():
                 g = np.concatenate([g0, g1])
                 reward = compute_reward(ag, g, info) 
                 replay_buffer.store(nstate,action,reward,nsprime,0)
-                replay_buffer_2.store(nstate,action,reward,nsprime,0)
+                if(reward == 0):
+                    replay_buffer_2.store(nstate,action,reward,nsprime,0)
 
             
             
             if(episode >= start_episodes):
                 batch_size = 400
-
+                update(replay_buffer, batch_size)
+                update(replay_buffer, batch_size)
                 update(replay_buffer, batch_size)
                 update(replay_buffer, batch_size)
               
