@@ -8,6 +8,14 @@ from torch.optim import Adam
 
 
 from memory import ReplayBuffer
+
+from bokeh.plotting import figure, show
+from bokeh.models import HoverTool
+from bokeh.plotting import ColumnDataSource, figure, show
+
+import time 
+
+start_time = time.time()
 torch.manual_seed(0)
 np.random.seed(0)
 env = gym.make("FetchReach-v1",reward_type="dense")
@@ -54,7 +62,9 @@ def compute_loss_q(data):
 def compute_loss_pi(data):
     o = data['obs']
     a = data['act']
-    q_pi = qnetwork(o, anetwork(o))
+    var_noise = 1.0
+    q_pi = (qnetwork(o, anetwork(o))) + (var_noise*torch.var(a,dim=1))
+    q_pi = (qnetwork(o, anetwork(o)))
     return -q_pi.mean()
 
 def main():
@@ -68,8 +78,11 @@ def main():
     print("mmin_action", env.action_space.low)
     
     score_history = []
+    time_history =[]
+    n_played_games = 0
     n_played_games = 0
     start_episodes = 100
+    episode_list = []
     
     # Experience buffer
     replay_size=int(1e6)
@@ -117,24 +130,54 @@ def main():
            
             if (done or steps >= 999):
                 n_played_games += 1
+                episode_list.append(episode)
                 score_history.append(ep_ret)
+                time_history.append(time.time() - start_time)
                 avg_score = np.mean(score_history[-100:])
                 print( 'score %.1f' %ep_ret, 'avg_score %.1f' %avg_score,'num_games', n_played_games, action )
                 observation,ep_ret,ep_len= env.reset(), 0, 0
                 break
             
-            if(steps  % 1 == 0 and episode > 200):
-               update(replay_buffer)
+            if(episode >= start_episodes):
+                batch_size = 400
+                update(replay_buffer, batch_size)
     
     torch.save(anetwork, 'anetwork.pth')
     torch.save(anetwork.core,'/Users/vardhan/Desktop/CS390/SpaceRobotEnv-main/fetch_core_a.pth')
     torch.save(qnetwork.core,'/Users/vardhan/Desktop/CS390/SpaceRobotEnv-main/fetch_core_q.pth')              
-    # while(1):
-    #     test_agent()
-            
+    print("SAVED")
+    visualize(episode_list,score_history,time_history)
+    print("--- %s seconds ---" % (time.time() - start_time))
 
-def update(replay_buffer):
-    batch_size = 500
+
+def visualize(episode_list,reward_list,time_history):
+    # create a new plot with a title and axis labels
+    TOOLTIPS = [
+        ('episode', "@x"),
+        ('reward', "@y"),
+        ('time_taken','@time')
+    ]
+    
+    source = ColumnDataSource(data=dict(
+    x=episode_list,
+    y=reward_list,
+    time = time_history,
+    ))
+    
+    p = figure(title="FetchReach-v0",
+               tools=[HoverTool()],
+               tooltips=TOOLTIPS,
+               x_axis_label="episode", 
+               y_axis_label="reward" 
+               )
+
+    # add a line renderer with legend and line thickness
+    p.line(x='x', y='y', line_width=2,source=source)
+
+    # show the results
+    show(p)
+
+def update(replay_buffer,batch_size):
     data = replay_buffer.sample_batch(batch_size)
     qoptimizer.zero_grad()
     loss = compute_loss_q(data)

@@ -143,6 +143,7 @@ def main():
                 batch_size = 400
                 update(replay_buffer, batch_size)
                 update(replay_buffer, batch_size)
+                # update(replay_buffer, batch_size)
 
                           
                 
@@ -179,7 +180,7 @@ def visualize(episode_list,reward_list,time_history):
     time = time_history,
     ))
     
-    p = figure(title="Transfer Learning Space Robot",
+    p = figure(title="Space Robot Single Arm",
                tools=[HoverTool()],
                tooltips=TOOLTIPS,
                x_axis_label="episode", 
