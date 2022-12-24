@@ -14,12 +14,11 @@ def main():
     while(1):
         test_agent()
 def get_action(o, noise_scale):
-    noise_scale = 0.2
+    noise_scale = 0.15
     act_limit = env.action_space.high[0]
     act_dim = env.action_space.shape[0]
     a = anetwork(torch.as_tensor(o, dtype=torch.float32)).detach().numpy()
     a = (1-noise_scale)*a  + (noise_scale * np.random.randn(act_dim))
-    # a = a  - noise_scale * np.random.randn(act_dim)
     return np.clip(a, -act_limit, act_limit)
 
 def test_agent():
